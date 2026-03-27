@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>🌟 营养躲猫猫 🌟</title>
+    <style>
+        /* --- 可爱轻快风格 CSS --- */
+        :root {
+            --bg-color: #fefaf1; 
+            --card-color: #ffffff;
+            --text-main: #5d4037; 
+            --text-sub: #a1887f;
+            --primary-color: #ff9242; 
+            --protein-color: #ff7043; 
+            --carbs-color: #ffa726;   
+            --secondary-color: #a8e6cf; 
+            --danger-color: #ff6b6b; 
+            --radius-big: 25px; 
+            --radius-small: 15px;
+            --shadow: 0 8px 20px rgba(255, 146, 66, 0.1);
+        }
+
+        body {
+            font-family: "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            padding-top: calc(20px + env(safe-area-inset-top)); 
+            /* 给底部导航栏留出空间 */
+            padding-bottom: 90px; 
+            color: var(--text-main);
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        h2, h3 { margin-top: 0; font-weight: 900; }
+        h3 { font-size: 18px; display: flex; align-items: center; gap: 8px; }
+
+        .card {
+            background-color: var(--card-color);
+            border-radius: var(--radius-big);
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 2px solid #fff3e0; 
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ffe0b2;
+            border-radius: var(--radius-small);
+            font-size: 15px;
+            box-sizing: border-box;
+            background-color: #fffde7;
+            color: var(--text-main);
+            transition: 0.3s;
+        }
+        input:focus { outline: none; border-color: var(--primary-color); background-color: #ffffff; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+
+        button {
+            border: none; cursor: pointer; transition: all 0.2s ease;
+            font-weight: bold; display: inline-flex; align-items: center;
+            justify-content: center; box-sizing: border-box;
+        }
+        button:active { transform: scale(0.95); opacity: 0.8; }
+
+        .btn-block { width: 100%; padding: 15px; border-radius: 30px; font-size: 17px; margin-top: 5px; }
+        .btn-primary { background-color: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(255,146,66,0.3); }
+        .btn-success { background-color: var(--secondary-color); color: var(--text-main); }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+
+        .btn-food {
+            background-color: #fffde7; color: #d84315; border: 2px solid #fff9c4;
+            margin: 5px; padding: 8px 15px; border-radius: 20px; font-size: 14px; font-weight: normal;
+        }
+
+        .btn-undo {
+            padding: 6px 12px; font-size: 13px; border-radius: 15px; background-color: #ffeeee;
+            color: var(--danger-color); border: 1px solid #ffcccc; font-weight: normal;
+        }
+
+        .result-box { text-align: center; padding: 30px 20px; background: linear-gradient(135deg, #fff 0%, #fff3e0 100%);}
+        .result-title { color: var(--text-sub); font-size: 15px; margin-bottom: 5px; }
+        .result-number { font-size: 48px; font-weight: 900; margin: 0; text-shadow: 2px 2px 0 rgba(0,0,0,0.05); }
+        .text-green { color: #81c784; } 
+        .text-red { color: var(--danger-color); }   
+        .text-unit { font-size: 16px; font-weight: normal; color: var(--text-sub); margin-left: 5px;}
+
+        hr { border: 0; border-top: 2px dashed #ffe0b2; margin: 20px 0; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { padding: 15px 5px; border-bottom: 1px solid #fff3e0; display: flex; justify-content: space-between; align-items: center; }
+        .food-tag { background-color: #f1f8e9; color: #689f38; padding: 3px 8px; border-radius: 8px; font-size: 12px; margin-right: 5px; }
+        .empty-tip { color: var(--text-sub); font-size: 14px; text-align: center; padding: 10px 0; font-style: italic;}
+        .icon-paws { margin-right: 8px; color: var(--primary-color); }
+
+        .dashboard { display: flex; justify-content: space-around; background-color: #fff9c4; padding: 15px; border-radius: var(--radius-small); margin-bottom: 15px; }
+        .dash-item { text-align: center; }
+        .dash-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        .dash-value { font-size: 20px; font-weight: 900; }
+
+        /* --- 底部导航栏 --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 10px;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom)); /* 适配苹果底部小黑条 */
+            box-shadow: 0 -2px 20px rgba(0,0,0,0.05);
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            z-index: 1000;
+        }
+        .nav-item {
+            text-align: center; color: #d7ccc8; font-size: 12px; font-weight: bold; width: 50%;
+            transition: 0.3s;
+        }
+        .nav-item.active { color: var(--primary-color); transform: scale(1.05); }
+        .nav-icon { font-size: 24px; margin-bottom: 4px; display: block; }
+
+        /* 统计页面的小卡片样式 */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .stat-box { background: #fafafa; padding: 15px; border-radius: var(--radius-small); text-align: center; border: 1px solid #f5f5f5;}
+        .stat-val { font-size: 22px; font-weight: 900; margin-top: 5px; color: var(--text-main); }
+    </style>
+</head>
+<body>
+
+    <div id="viewRecord">
+        <div class="card result-box">
+            <div class="result-title">✨ 今日热量缺口 ✨</div>
+            <div id="deficitDisplay" class="result-number">0<span class="text-unit">kcal</span></div>
+            <p style="color: var(--text-sub); font-size: 13px; margin: 10px 0 0 0;">(消耗 - 摄入 = 变瘦的动力!)</p>
+        </div>
+
+        <div class="card">
+            <h3><span class="icon-paws">🔥</span>今日大作战消耗</h3>
+            <input type="number" id="burnInput" placeholder="输入基础代谢 + 运动 (例: 1950)">
+            <button class="btn-block btn-primary" onclick="updateBurn()">💖 记住了</button>
+        </div>
+
+        <div class="card">
+            <h3><span class="icon-paws">🍬</span>我的专属零食筐</h3>
+            <div id="quickAddArea" style="margin-bottom: 10px;"></div>
+            <hr>
+            <div style="font-size:14px; color:var(--text-sub); margin-bottom:10px;">添加新食物 (蛋白质/碳水可不填)：</div>
+            <div class="input-row">
+                <input type="text" id="newFoodName" placeholder="食物名字" style="flex: 2;">
+                <input type="number" id="newFoodCal" placeholder="热量(kcal)" style="flex: 1.5;">
+            </div>
+            <div class="input-row">
+                <input type="number" id="newFoodPro" placeholder="🥩蛋白质(g)" style="flex: 1;">
+                <input type="number" id="newFoodCarb" placeholder="🍚碳水(g)" style="flex: 1;">
+            </div>
+            <button class="btn-block btn-success" style="margin-top: 5px;" onclick="addNewFood()">➕ 塞进筐里并吃掉</button>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0;"><span class="icon-paws">📝</span>今日进食清单</h3>
+                <button class="btn-undo" id="undoBtn" onclick="undoLastIntake()" style="display:none;">🔙 撤销</button>
+            </div>
+            <div class="dashboard">
+                <div class="dash-item"><div class="dash-label">🔥 总热量</div><div class="dash-value" id="totalCalDisplay" style="color: var(--primary-color);">0</div></div>
+                <div class="dash-item"><div class="dash-label">🥩 蛋白质</div><div class="dash-value" id="totalProDisplay" style="color: var(--protein-color);">0g</div></div>
+                <div class="dash-item"><div class="dash-label">🍚 碳水</div><div class="dash-value" id="totalCarbDisplay" style="color: var(--carbs-color);">0g</div></div>
+            </div>
+            <ul id="intakeList"></ul>
+            
+            <button class="btn-block btn-primary" style="margin-top: 25px; background-color: #64b5f6; box-shadow: 0 4px 10px rgba(100,181,246,0.3);" onclick="finishToday()">📦 封存今天，迎接明天</button>
+            <div style="text-align:center; font-size:12px; color:var(--text-sub); margin-top:8px;">每天睡前点一次，将数据存入历史统计</div>
+        </div>
+    </div>
+
+    <div id="viewStats" style="display: none;">
+        
+        <div class="card result-box" style="padding: 20px;">
+            <h2 style="margin:0; color:var(--primary-color);">📊 我的成长足迹</h2>
+            <p style="color: var(--text-sub); font-size: 13px; margin: 5px 0 0 0;">坚持就是胜利，来看看你的战绩吧！</p>
+        </div>
+
+        <div class="card">
+            <h3>📅 最近 7 天平均值 <span id="days7Count" style="font-size:12px; font-weight:normal; color:#888; margin-left:auto;">(记录了0天)</span></h3>
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="dash-label">🔥 日均摄入</div>
+                    <div class="stat-val" id="s7_cal">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="dash-label">✨ 日均缺口</div>
+                    <div class="stat-val" id="s7_def">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="dash-label">🥩 日均蛋白</div>
+                    <div class="stat-val" id="s7_pro" style="color: var(--protein-color);">0g</div>
+                </div>
+                <div class="stat-box">
+                    <div class="dash-label">🍚 日均碳水</div>
+                    <div class="stat-val" id="s7_carb" style="color: var(--carbs-color);">0g</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🗓️ 最近 30 天平均值 <span id="days30Count" style="font-size:12px; font-weight:normal; color:#888; margin-left:auto;">(记录了0天)</span></h3>
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="dash-label">🔥 日均摄入</div>
+                    <div class="stat-val" id="s30_cal">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="dash-label">✨ 日均缺口</div>
+                    <div class="stat-val" id="s30_def">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="dash-label">🥩 日均蛋白</div>
+                    <div class="stat-val" id="s30_pro" style="color: var(--protein-color);">0g</div>
+                </div>
+                <div class="stat-box">
+                    <div class="dash-label">🍚 日均碳水</div>
+                    <div class="stat-val" id="s30_carb" style="color: var(--carbs-color);">0g</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" id="navRecord" onclick="switchTab('record')">
+            <span class="nav-icon">📝</span>
+            今日打卡
+        </div>
+        <div class="nav-item" id="navStats" onclick="switchTab('stats')">
+            <span class="nav-icon">📊</span>
+            历史统计
+        </div>
+    </div>
+
+    <script>
+        // --- 核心逻辑 ---
+        
+        // 读取数据，智能继承 V2 版本的零食筐
+        let savedFoods = JSON.parse(localStorage.getItem('savedFoods_v3')) || JSON.parse(localStorage.getItem('savedFoods_v2')) || []; 
+        let todayIntake = JSON.parse(localStorage.getItem('todayIntake_v3')) || [];
+        let dailyBurn = parseFloat(localStorage.getItem('dailyBurn_v3')) || 0;
+        
+        // ⭐ 新增：历史数据集
+        let historyData = JSON.parse(localStorage.getItem('historyData_v3')) || [];
+
+        // 全局变量保存今天算出的总数
+        let currentTotalCal = 0, currentTotalPro = 0, currentTotalCarb = 0;
+
+        document.getElementById('burnInput').value = dailyBurn || '';
+        renderApp();
+        renderStats();
+
+        // --- 页面切换逻辑 ---
+        function switchTab(tab) {
+            let vRecord = document.getElementById('viewRecord');
+            let vStats = document.getElementById('viewStats');
+            let nRecord = document.getElementById('navRecord');
+            let nStats = document.getElementById('navStats');
+
+            if (tab === 'record') {
+                vRecord.style.display = 'block';
+                vStats.style.display = 'none';
+                nRecord.className = 'nav-item active';
+                nStats.className = 'nav-item';
+            } else {
+                vRecord.style.display = 'none';
+                vStats.style.display = 'block';
+                nRecord.className = 'nav-item';
+                nStats.className = 'nav-item active';
+                renderStats(); // 每次切过去都重新计算一下
+            }
+        }
+
+        // --- 辅助函数 ---
+        function formatNum(num) { return parseFloat(num.toFixed(1)); }
+
+        // --- 功能函数 ---
+        function updateBurn() {
+            let burnVal = document.getElementById('burnInput').value;
+            dailyBurn = parseFloat(burnVal) || 0;
+            localStorage.setItem('dailyBurn_v3', dailyBurn);
+            renderApp();
+            alert("消耗量保存成功啦！✨");
+        }
+
+        function addNewFood() {
+            let name = document.getElementById('newFoodName').value;
+            let cal = parseFloat(document.getElementById('newFoodCal').value);
+            let pro = parseFloat(document.getElementById('newFoodPro').value) || 0;
+            let carb = parseFloat(document.getElementById('newFoodCarb').value) || 0;
+            
+            if (!name || isNaN(cal)) { alert("食物名字和热量是必须要填的哦！🥺"); return; }
+
+            savedFoods.push({ name: name, calories: cal, protein: pro, carbs: carb });
+            localStorage.setItem('savedFoods_v3', JSON.stringify(savedFoods));
+            recordIntake(name, cal, pro, carb);
+
+            document.getElementById('newFoodName').value = '';
+            document.getElementById('newFoodCal').value = '';
+            document.getElementById('newFoodPro').value = '';
+            document.getElementById('newFoodCarb').value = '';
+        }
+
+        function recordIntake(name, cal, pro, carb) {
+            todayIntake.push({ name: name, calories: cal, protein: pro || 0, carbs: carb || 0, time: new Date().getTime() });
+            localStorage.setItem('todayIntake_v3', JSON.stringify(todayIntake));
+            renderApp();
+        }
+
+        function undoLastIntake() {
+            if (todayIntake.length === 0) return;
+            if(confirm("哎呀，刚才那顿不算数？这就把它变走~ ✨")) {
+                todayIntake.pop(); 
+                localStorage.setItem('todayIntake_v3', JSON.stringify(todayIntake));
+                renderApp();
+            }
+        }
+
+        // ⭐ 新增核心：封存今天的数据
+        function finishToday() {
+            if(todayIntake.length === 0 && dailyBurn === 0) {
+                alert("今天的数据还是空的哦，记几笔再封存吧！"); return;
+            }
+            if(!confirm("确定要【封存】今天的数据吗？\n存入历史后，今日列表将被清空，为你准备好明天的全新记录板！📦")) {
+                return;
+            }
+
+            // 获取当天的年月日字符串，比如 "2026/3/27"
+            let todayDateStr = new Date().toLocaleDateString('zh-CN');
+
+            // 如果今天已经封存过（手滑点错又补填），先把今天的旧记录删掉，用新的覆盖
+            historyData = historyData.filter(d => d.date !== todayDateStr);
+
+            // 把今天的数据打包推入历史库
+            historyData.push({
+                date: todayDateStr,
+                cal: currentTotalCal,
+                burn: dailyBurn,
+                pro: currentTotalPro,
+                carb: currentTotalCarb
+            });
+
+            localStorage.setItem('historyData_v3', JSON.stringify(historyData));
+
+            // 清空今日数据
+            todayIntake = [];
+            localStorage.setItem('todayIntake_v3', JSON.stringify(todayIntake));
+            
+            renderApp();
+            alert("✨ 封存成功！今天的数据已经好好存放在统计页啦，晚安~");
+        }
+
+        // --- 渲染页面 ---
+        function renderApp() {
+            let quickArea = document.getElementById('quickAddArea');
+            quickArea.innerHTML = '';
+            if (savedFoods.length === 0) {
+                quickArea.innerHTML = '<div class="empty-tip">在下方添加第一个常用食物吧！👇</div>';
+            } else {
+                savedFoods.forEach(food => {
+                    let btn = document.createElement('button');
+                    btn.className = 'btn-food';
+                    btn.innerText = `${food.name} (${food.calories})`;
+                    btn.onclick = () => recordIntake(food.name, food.calories, food.protein, food.carbs);
+                    quickArea.appendChild(btn);
+                });
+            }
+
+            let undoBtn = document.getElementById('undoBtn');
+            undoBtn.style.display = todayIntake.length > 0 ? 'inline-block' : 'none';
+
+            currentTotalCal = 0; currentTotalPro = 0; currentTotalCarb = 0;
+            let listArea = document.getElementById('intakeList');
+            listArea.innerHTML = '';
+            
+            if (todayIntake.length === 0) {
+                listArea.innerHTML = '<div class="empty-tip">今天还没嗷呜吃东西呢~ 💤</div>';
+            } else {
+                let renderList = [...todayIntake].reverse();
+                renderList.forEach(item => {
+                    currentTotalCal += item.calories; currentTotalPro += item.protein; currentTotalCarb += item.carbs;
+                    let li = document.createElement('li');
+                    li.innerHTML = `
+                        <div style="display:flex; flex-direction:column; gap:5px;">
+                            <div><span class="food-tag">嗷呜</span><span style="font-weight:bold;">${item.name}</span></div>
+                            <div style="font-size:12px; color:var(--text-sub);">🥩 蛋白: ${item.protein}g | 🍚 碳水: ${item.carbs}g</div>
+                        </div>
+                        <div style="font-weight:bold; color:var(--text-main); font-size:18px;">
+                            ${item.calories} <span style="font-size:12px; font-weight:normal; color:var(--text-sub);">kcal</span>
+                        </div>`;
+                    listArea.appendChild(li);
+                });
+            }
+            
+            document.getElementById('totalCalDisplay').innerText = formatNum(currentTotalCal);
+            document.getElementById('totalProDisplay').innerText = formatNum(currentTotalPro) + 'g';
+            document.getElementById('totalCarbDisplay').innerText = formatNum(currentTotalCarb) + 'g';
+
+            let deficit = dailyBurn - currentTotalCal;
+            let deficitDisplay = document.getElementById('deficitDisplay');
+            
+            if (dailyBurn === 0) {
+                deficitDisplay.innerHTML = `?<span class="text-unit">kcal</span>`;
+                deficitDisplay.className = 'result-number';
+            } else {
+                deficitDisplay.innerHTML = `${formatNum(deficit)}<span class="text-unit">kcal</span>`;
+                if (deficit > 0) deficitDisplay.className = 'result-number text-green';
+                else if (deficit < 0) deficitDisplay.className = 'result-number text-red';
+                else deficitDisplay.className = 'result-number'; 
+            }
+        }
+
+        // ⭐ 新增：计算并渲染统计数据
+        function renderStats() {
+            calcAndDrawStats(7, 's7_cal', 's7_def', 's7_pro', 's7_carb', 'days7Count');
+            calcAndDrawStats(30, 's30_cal', 's30_def', 's30_pro', 's30_carb', 'days30Count');
+        }
+
+        function calcAndDrawStats(daysLimit, idCal, idDef, idPro, idCarb, idCount) {
+            // 获取最近 N 天的数据（如果是刚用，可能没有 N 天，按实际天数算平均）
+            let dataSlice = historyData.slice(-daysLimit);
+            let count = dataSlice.length;
+
+            document.getElementById(idCount).innerText = `(记录了 ${count} 天)`;
+
+            if(count === 0) {
+                // 如果没有数据，显示 --
+                document.getElementById(idCal).innerText = "--";
+                document.getElementById(idDef).innerText = "--";
+                document.getElementById(idDef).style.color = "var(--text-main)";
+                document.getElementById(idPro).innerText = "--";
+                document.getElementById(idCarb).innerText = "--";
+                return;
+            }
+
+            let sumCal = 0, sumBurn = 0, sumPro = 0, sumCarb = 0;
+            dataSlice.forEach(d => {
+                sumCal += d.cal; sumBurn += d.burn;
+                sumPro += d.pro; sumCarb += d.carb;
+            });
+
+            let avgCal = sumCal / count;
+            let avgDeficit = (sumBurn - sumCal) / count;
+            let avgPro = sumPro / count;
+            let avgCarb = sumCarb / count;
+
+            document.getElementById(idCal).innerText = formatNum(avgCal);
+            document.getElementById(idPro).innerText = formatNum(avgPro) + "g";
+            document.getElementById(idCarb).innerText = formatNum(avgCarb) + "g";
+
+            let defEl = document.getElementById(idDef);
+            defEl.innerText = formatNum(avgDeficit);
+            if(avgDeficit > 0) defEl.style.color = "#81c784"; // 绿色
+            else if(avgDeficit < 0) defEl.style.color = "var(--danger-color)"; // 红色
+            else defEl.style.color = "var(--text-main)";
+        }
+    </script>
+</body>
+</html>
